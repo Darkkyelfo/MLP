@@ -82,7 +82,7 @@ class Perceptron(object):
                 
     #arredonda caso se esteja usando alguma função de ativação continua 
     def __discretizarSaida(self,saida):
-        if(saida >= 0.92):
+        if(saida >= 0.96):
             return 1
         elif(saida <= 0.1):
             return 0

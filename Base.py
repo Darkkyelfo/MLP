@@ -3,13 +3,13 @@ Created on Aug 14, 2017
 
 @author: raul
 '''
-
+from copy import deepcopy
 class Base(object):
     
     def __init__(self, classes,atributos):
         self.tiposClasses = []
-        self.classes = classes
-        self.atributos = atributos
+        self.classes = deepcopy(classes)
+        self.atributos = deepcopy(atributos)
         for e in classes:
             if(e not in self.tiposClasses):
                 self.tiposClasses.append(e) 
@@ -23,6 +23,13 @@ class Base(object):
                 subClasse.append(e)
                 subAtributos.append(self.atributos[i])
         return Base(subClasse,subAtributos)
+    
+
+        
+        
+            
+        
+        
 
                 
         

@@ -34,6 +34,7 @@ class MLP(object):
     def __avaliarPorCamada(self,entrada,camada):
         self.resultado.append(entrada)
         if(camada == self.qtCamadas):
+            print("resultados",self.resultado)
             return entrada
         
         resultado = []
@@ -53,7 +54,7 @@ class MLP(object):
                 perc.weights[w] = perc.weights[w] + self.n*perc.entradas[w]*self.delta[0][p]
            # print("w[%s] = %s + %s*%s*%s"%(w+1,perc.weights[w+1],self.n,self.bias,self.delta[0][p]))
             perc.weights[-1] = perc.weights[-1] + self.n*self.bias*self.delta[0][p]
-            #print(perc.entradas,"saida",perc.weights)  
+            print("saida",perc.weights)  
             #print("\n")
         
     def __findDeltasSaida(self,classe):
@@ -89,7 +90,7 @@ class MLP(object):
                 perc.weights[-1] = perc.weights[-1] + self.n*self.bias*delta
                 de.append(delta)
                 #print("\n")
-                #print(perc.entradas,"ocultos",perc.weights)
+                print("ocultos",perc.weights)
             self.delta.append(de)
     
     @jit
@@ -100,7 +101,8 @@ class MLP(object):
             for index,atr in enumerate(baseTreino.atributos):
                 saida = self.avaliar(atr)
                 #print("resultados1",self.resultado)
-                classe = self.__decimalParaBin(baseTreino.classes[index])
+                #print(saida)
+                classe = self.decimalParaBin(baseTreino.classes[index])
                 for k,e in enumerate(saida):
                     if(e!=classe[k]):
                         self.delta = []
@@ -139,10 +141,17 @@ class MLP(object):
             b = b + str(i)
         return int(b,2)
     
-    def __decimalParaBin(self,num):
+    #retorna um binario do tamanho da quantidade de perceptrons na camada de saida
+    #exemplo se houver 3 o vetores sera: entrada(1) -> [0,0,1]
+    def decimalParaBin(self,num):
         s = []
+        binario = len(str(bin(num))[2:])
+        r = len(self.camadas[-1]) - binario#verifica se o binario tem o mesmo tamanho da saida
+        for i in range(r):
+            s.append(0)    
         for i in str(bin(num))[2:]:
             s.append(int(i))
+        
         return s
     
  
