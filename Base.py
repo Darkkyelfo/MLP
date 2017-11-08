@@ -50,6 +50,10 @@ class Base(object):
     def normalizar(self):
         self.atributosOri = deepcopy(self.atributos)
         self.atributos = self.min_max_scaler.fit_transform(self.atributos)
+    
+    def desnormalizar(self):
+        self.atributos = self.atributosOri
+        
         
         
     

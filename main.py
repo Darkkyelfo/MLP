@@ -33,16 +33,16 @@ if __name__ == '__main__':
     tc = bWine1.classesOri[0:int(qtBase/2)]+bWine2.classesOri[0:int(qtBase2/2)]+bWine3.classesOri[0:int(qtBase2/2)]
     ta = bWine1.atributos[0:int(qtBase/2)]+bWine2.atributos[0:int(qtBase2/2)]+bWine3.atributos[0:int(qtBase2/2)]
     
-    pca = PCA()
+    #pca = PCA()
     bWineTreino = Base(tc,ta)
-    pca.fit(bWineTreino)
-    bWineTreino = pca.run(bWineTreino, 13)
+    #pca.fit(bWineTreino)
+    #bWineTreino = pca.run(bWineTreino, 13)
     bWineTreino.embaralharBase()
     
     tc = bWine1.classesOri[int(qtBase/2):]+bWine2.classesOri[int(qtBase2/2):]+bWine3.classesOri[int(qtBase3/2):]
     ta = bWine1.atributos[int(qtBase/2):]+bWine2.atributos[int(qtBase2/2):]+bWine3.atributos[int(qtBase3/2):]
     
-    bWineTeste = pca.run(Base(tc,np.array(ta)),13)
+    bWineTeste = Base(tc,np.array(ta))
     
     #base iris treino
     
@@ -64,8 +64,6 @@ if __name__ == '__main__':
     
     bIrisTeste = Base(tc,ta)
     #print(bIrisTeste.classes)
-
-
      
     #mlpsk = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(3, 3), random_state=1)
     #mlpsk.fit(bWineTreino.atributos,bWineTreino.classesOri)
@@ -76,44 +74,37 @@ if __name__ == '__main__':
     epocas = 10000
     taxa = 0.7
     mlp = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
-    mlpNormalizada = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
     mlp.carregarDeArquivo("redes/mlpWine0")
-    mlpNormalizada.carregarDeArquivo("redes/mlpWine0")
-    
-    '''
+    mlp.fit(bWineTreino)
+    print("wine nao normalizada:%s"%mlp.test(bWineTeste))
     bWineTreino.normalizar()
     bWineTeste.normalizar()
+    mlp.carregarDeArquivo("redes/mlpWine0")
     mlp.fit(bWineTreino)
-    erro = 0
-    for i,atr in enumerate(bWineTeste.atributos):
-        print(atr)
-
-        r = mlp.avaliar(atr)
-        c = mlp.decimalParaBin(int(bWineTeste.classes[i]))
-        print(r,c)
-        if(r != c):
-            print("EEEEEEEEEEEEROUUUUUUUUUUUU")
-            erro+=1
-    erro = 100*(erro/len(bWineTeste.classesOri))
-    print("erro %s"%(erro))
-    #mlp.salveEmArquivo("redes/wine",erro)
-    '''
-    '''
+    print("wine normalizada:%s"%mlp.test(bWineTeste))
     #Rede neural pra base Iris
-    mlpIris = MLP([4,3],w1,0.2,10000,tipoFunc="Sigmoid")
+    mlpIris = MLP([4,3],w1,taxa,epocas,tipoFunc="Sigmoid")
+    mlpIris.salveEmArquivo("redes/iris0")
     mlpIris.fit(bIrisTreino)
-    #mlpIris.carregarDeArquivo("redes/iris1")
-    erro = 0
-    for i,atr in enumerate(bIrisTeste.atributos):
-        r = mlpIris.avaliar(atr)
-        c = mlpIris.decimalParaBin(int(bIrisTeste.classes[i]))
-        print(atr)
-        print(r,c)
-        if(r != c):
-            print("EEEEEEEEEEEEROUUUUUUUUUUUU")
-            erro+=1
-        print("\n")
-    print("erro iris %s%%"%((erro/len(bIrisTeste.classesOri))*100))
+    print("iris nao normalizada:%s"%mlpIris.test(bIrisTeste))
+    bIrisTreino.normalizar()
+    bIrisTeste.normalizar()
+    mlpIris.carregarDeArquivo("redes/iris0")
+    mlpIris.fit(bIrisTreino)
+    print("iris normalizada:%s"%mlpIris.test(bIrisTeste))
+    
+    # RELU VS SIGMOID
+    bIrisTreino.desnormalizar()
+    bIrisTeste.desnormalizar()
+    
+    mlpIris.carregarDeArquivo("redes/iris0")
+    mlpIris.fit(bIrisTreino)
+    print("Iris sigmoid:%s"%mlpIris.test(bIrisTeste))
+    
+    mlpIris.carregarDeArquivo("redes/iris0")
+    mlpIris.setFuncaoAtivacao("lRELU")
+    mlpIris.fit(bIrisTreino)
+    print("Iris Relu:%"%mlpIris.test(bIrisTeste))
     #mlpIris.salveEmArquivo("redes/iris2")
-    '''
+    
     pass

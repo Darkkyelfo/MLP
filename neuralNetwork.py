@@ -29,6 +29,8 @@ class Perceptron(object):
             self.funcAtivacao = funcoes.Sigmoid(parametros[0])
         elif(funcao=="TanH"):
             self.funcAtivacao = funcoes.TanH()
+        elif(funcao=="lRELU"):
+            self.funcAtivacao = funcoes.LReLU()
         else:
             self.funcAtivacao = funcoes.Sigmoid()
     
@@ -250,7 +252,17 @@ class MLP(object):
         except:
             pass
     
-            
+    #método que executa a rede neural para uma base e retorn o erro
+    def test(self,bTeste):
+        erro = 0
+        for i,atr in enumerate(bTeste.atributos):
+            print(atr)
+            r = self.avaliar(atr)
+            c = self.decimalParaBin(int(bTeste.classes[i]))
+            if(r != c):
+                erro+=1
+        erro = 100*(erro/len(bTeste.classesOri))
+        return erro    
             
         
         
