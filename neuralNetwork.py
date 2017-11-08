@@ -98,7 +98,7 @@ class MLP(object):
             self.camadas.append([])
             for j in range(e):
                 w = [ random() for k in range(pesos[i]) ]#gera os pesos aleatorios
-                print(w)
+                #print(w)
                 p = Perceptron(w,self.n,1,self.bias,tipoFunc,parametros)
                 self.camadas[i].append(p)
 
@@ -227,26 +227,29 @@ class MLP(object):
     
     #carrega uma rede neural salva em arquivo
     def carregarDeArquivo(self,caminho):
-        arq  = open(caminho,"r")
-        l = arq.readlines()
-        e = l[0].split(",")
-        self.n = float(e[0])
-        self.qtIteracoes = int(e[1])
-        self.tipoFunc = e[2]
-        self.bias = float(e[3])
-        self.pDaFuncao = list(l[1].replace("\n","").split(","))
-        self.pDaFuncao = [float(x) for x in self.pDaFuncao]
-        self.camadas = []
-        c = -1
-        for w in l[2:]:
-            if(w=="#\n"):
-                self.camadas.append([])
-                c = c+1
-                continue
-            w = list(w.replace("\n","").split(","))
-            w = [float(x) for x in w]
-            self.camadas[c].append(Perceptron(w,self.n,1,self.bias,self.tipoFunc,self.pDaFuncao))
-            
+        try:
+            arq  = open(caminho,"r")
+            l = arq.readlines()
+            e = l[0].split(",")
+            self.n = float(e[0])
+            self.qtIteracoes = int(e[1])
+            self.tipoFunc = e[2]
+            self.bias = float(e[3])
+            self.pDaFuncao = list(l[1].replace("\n","").split(","))
+            self.pDaFuncao = [float(x) for x in self.pDaFuncao]
+            self.camadas = []
+            c = -1
+            for w in l[2:]:
+                if(w=="#\n"):
+                    self.camadas.append([])
+                    c = c+1
+                    continue
+                w = list(w.replace("\n","").split(","))
+                w = [float(x) for x in w]
+                self.camadas[c].append(Perceptron(w,self.n,1,self.bias,self.tipoFunc,self.pDaFuncao))
+        except:
+            pass
+    
             
             
         

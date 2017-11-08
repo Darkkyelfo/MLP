@@ -73,12 +73,18 @@ if __name__ == '__main__':
     w1 = [len(bIris.atributos[0])+1,5]
     
     #Rede neural pra base wine
+    epocas = 10000
+    taxa = 0.7
+    mlp = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlpNormalizada = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlp.carregarDeArquivo("redes/mlpWine0")
+    mlpNormalizada.carregarDeArquivo("redes/mlpWine0")
     
-    mlp = MLP([4,3],w,0.7,10000,tipoFunc="Sigmoid")
+    '''
     bWineTreino.normalizar()
+    bWineTeste.normalizar()
     mlp.fit(bWineTreino)
     erro = 0
-    bWineTeste.normalizar()
     for i,atr in enumerate(bWineTeste.atributos):
         print(atr)
 
@@ -91,7 +97,7 @@ if __name__ == '__main__':
     erro = 100*(erro/len(bWineTeste.classesOri))
     print("erro %s"%(erro))
     #mlp.salveEmArquivo("redes/wine",erro)
-    
+    '''
     '''
     #Rede neural pra base Iris
     mlpIris = MLP([4,3],w1,0.2,10000,tipoFunc="Sigmoid")

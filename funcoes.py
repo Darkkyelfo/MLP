@@ -47,5 +47,13 @@ class TanH(Funcao):
     
     def dFx(self,x):
         return mp.sech(x)**2
+
+class LReLU(Funcao):
+    
+    def fx(self,x):
+        return 1 if x >= 0 else 0.01
+    
+    def dFx(self,x):
+        return self.fx(x)
     
         
