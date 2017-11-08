@@ -212,7 +212,7 @@ class MLP(object):
         return s
     
     #metodo que salva a rede em um arquivo
-    def salveEmArquivo(self,caminho):
+    def salveEmArquivo(self,caminho,erro=""):
         arq = open(caminho,"w")
         s = str(self.n)+","+str(self.qtIteracoes)+","+str(self.tipoFunc)+","+str(self.bias)+"\n"+str(self.pDaFuncao)+"\n"
         for cam in self.camadas:
@@ -221,6 +221,7 @@ class MLP(object):
                 s = s+str(perc.weights)
                 s = s.replace("[", "").replace("]", "")
                 s = s + "\n"
+        s = s + "\nerro%s"%erro
         arq.write(s)
         arq.close()
     

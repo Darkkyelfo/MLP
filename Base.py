@@ -5,6 +5,8 @@ Created on Aug 14, 2017
 '''
 from copy import deepcopy
 from random import shuffle
+from sklearn import preprocessing
+
 class Base(object):
     
     def __init__(self, classes,atributos,nome=""):
@@ -12,6 +14,7 @@ class Base(object):
         self.tiposClasses = []
         self.classesOri = deepcopy(classes)
         self.atributos = deepcopy(atributos)
+        self.min_max_scaler = preprocessing.MinMaxScaler()
         for e in classes:
             if(e not in self.tiposClasses):
                 self.tiposClasses.append(e)
@@ -43,6 +46,11 @@ class Base(object):
         for i in self.atributos:
             novosAtr.append(i[0:qtAtributos])
         return Base(self.classesOri,novosAtr)
+    
+    def normalizar(self):
+        self.atributosOri = deepcopy(self.atributos)
+        self.atributos = self.min_max_scaler.fit_transform(self.atributos)
+        
         
     
 

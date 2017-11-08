@@ -71,13 +71,14 @@ if __name__ == '__main__':
     #mlpsk.fit(bWineTreino.atributos,bWineTreino.classesOri)
     w = [len(bWine.atributos[0])+1,5]
     w1 = [len(bIris.atributos[0])+1,5]
-    """
+    
     #Rede neural pra base wine
     
-    mlp = MLP([4,3],w,0.7,10000,tipoFunc="sigmoid",a=1)
+    mlp = MLP([4,3],w,0.7,10000,tipoFunc="Sigmoid")
+    bWineTreino.normalizar()
     mlp.fit(bWineTreino)
     erro = 0
-    
+    bWineTeste.normalizar()
     for i,atr in enumerate(bWineTeste.atributos):
         print(atr)
 
@@ -87,10 +88,11 @@ if __name__ == '__main__':
         if(r != c):
             print("EEEEEEEEEEEEROUUUUUUUUUUUU")
             erro+=1
-    print("erro %s"%(erro/len(bWineTeste.classesOri)))
-    input("precione para seguir")
-    """
+    erro = 100*(erro/len(bWineTeste.classesOri))
+    print("erro %s"%(erro))
+    #mlp.salveEmArquivo("redes/wine",erro)
     
+    '''
     #Rede neural pra base Iris
     mlpIris = MLP([4,3],w1,0.2,10000,tipoFunc="Sigmoid")
     mlpIris.fit(bIrisTreino)
@@ -107,5 +109,5 @@ if __name__ == '__main__':
         print("\n")
     print("erro iris %s%%"%((erro/len(bIrisTeste.classesOri))*100))
     #mlpIris.salveEmArquivo("redes/iris2")
-
+    '''
     pass
