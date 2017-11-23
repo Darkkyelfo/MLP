@@ -21,6 +21,7 @@ class Funcao(ABC):
     @abstractmethod
     def dFx(self):
         pass
+    
 class Linear(Funcao):
     def fx(self,x):
         return 1 if x >= 0 else 0
@@ -34,10 +35,21 @@ class Sigmoid(Funcao):
         self.a = a
     
     def fx(self,x):
-        return 1/(1+m.e**(-1*x*self.a))
-
+        try:
+            return 1/(1+m.e**(-1*x*self.a))
+        except OverflowError:
+            if(x<0):
+                return 0
+            return 1
+            
     def dFx(self,x):
-        return (1-self.fx(x))*self.fx(x)
+        try:
+            return (1-self.fx(x))*self.fx(x)
+        except OverflowError:
+            if(x<0):
+                return 0
+            return 1
+            
 
     
 class TanH(Funcao):
@@ -51,9 +63,12 @@ class TanH(Funcao):
 class LReLU(Funcao):
     
     def fx(self,x):
-        return 1 if x >= 0 else 0.01
+        return max([0,0.01*x])
     
     def dFx(self,x):
-        return self.fx(x)
+        if(x<=0):
+            return 0.01
+        else:
+            return 1
     
         

@@ -22,7 +22,7 @@ class PCA(object):
         return (Base(base1.classes,novosAtributos))
     
     def fit(self,bTreino):
-        copia = np.array(copy.copy(bTreino.atributos))
+        copia = np.array(copy.deepcopy(bTreino.atributos))
         cov = np.cov(copia.T)
         autoValues,autoVectors = np.linalg.eig(cov)
         autoVectors = autoVectors.T
@@ -34,24 +34,29 @@ class PCA_SCORE(PCA):
     def fit(self,base1):
         super().fit(base1)
         base = super().run(base1, len(base1.classes))
-        m1 = base.getSubBaseClasse(0)
-        m2 = base.getSubBaseClasse(1)
-        m1 = np.mean(m1.atributos, axis=0)
-        m2 = np.mean(m2.atributos, axis=0)
-        scores = self.__score(m1, m2)
+        subBases = []
+        medias = [0]*len(base.tiposClasses)
+        for i in range(len(medias)):
+            subBases.append(base.getSubBaseClasse(i))
+            medias[i] = np.mean(subBases[i].atributos,axis=0)
+        scores = self.__score(medias)
         self.scores,self.autoVectors = zip(*sorted(zip(scores, self.autoVectors ),reverse=True))
     
     @jit
-    def __score(self,media1,media2):
+    def __score(self,medias):
         scores = []
-        for i in range(len(media1)):
+        for i in range(len(medias[0])):
             s = 0
             if(self.autoValues[i] != 0):
-                s = math.fabs((media1[i]-media2[i]))/self.autoValues[i]
+                s = math.fabs((self.__subTrairVetor(medias, i)))/self.autoValues[i]
             scores.append(s)
         return scores
 
-  
-               
+    def __subTrairVetor(self,lista,indice):
+        resultado = 0
+        for i in lista:
+            resultado = i[indice] - resultado
+        
+        return resultado  
     
     

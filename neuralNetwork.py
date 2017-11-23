@@ -1,6 +1,5 @@
 '''
 Created on 4 de nov de 2017
-
 @author: raul
 '''
 from numba import jit
@@ -120,7 +119,7 @@ class MLP(object):
         
         return saida
 
-    @jit
+
     #Metodo responsavel pro treinar a rede    
     def fit(self,baseTreino):
         for epoca in range(self.qtIteracoes):
@@ -128,28 +127,30 @@ class MLP(object):
             for index,atr in enumerate(baseTreino.atributos):
                 saida = self.avaliar(atr)
                 classe = self.decimalParaBin(baseTreino.classes[index])
-                #print("resultados: ",self.resultado[-1],classe)
+                #print("resultados: ",self.resultado[-1],saida,classe)
                 for k,e in enumerate(saida):
                     if(e!=classe[k]):
                         self.delta = []
-                        self.__atualizarPesosSaida(classe)
-                        self.__atualizarPesosOculto()
+                        self._findDeltasSaida(classe)
+                        self._atualizarPesosSaida()
+                        self._findDeltasEscondidos()
+                        self._atualizarPesosOcultos()
                         entrou = True
                         break
             if(entrou==False):#Caso não ocorram mais erros então para o treinamento
                 print(epoca)
                 break
-            
-    @jit
-    def __atualizarPesosSaida(self,classe):
-        self.__findDeltasSaida(classe)
+   
+
+    def _atualizarPesosSaida(self):
         for p,perc in enumerate(self.camadas[-1]):
+            #print("saida1:",perc.weights)
             for w in range(len(perc.weights)-1):
                 perc.weights[w] = perc.weights[w] + self.n*perc.entradas[w]*self.delta[0][p]
             perc.weights[-1] = perc.weights[-1] + self.n*self.bias*self.delta[0][p]
-
+            #print("Saida: ",perc.weights)
         
-    def __findDeltasSaida(self,classe):
+    def _findDeltasSaida(self,classe):
         d = []
         for i,perc in enumerate(self.camadas[-1]): #for nos perceptrons da camada de saída
             delta = perc.dStep(perc.resultoSomatorio)*(classe[i] - perc.saida)
@@ -162,22 +163,27 @@ class MLP(object):
     def __somatorioDelta(self,indDelta,indP,cam):
         s = 0
         for i,perc in enumerate(self.camadas[cam+1]):
+            #print("somatorio:",perc.weights)
             s = perc.weights[indP]*self.delta[indDelta][i] + s
+            #print("somatori1: ",s)
         return s
-            
-    @jit
-    def __atualizarPesosOculto(self):
+
+    
+    def _atualizarPesosOcultos(self):
         for indDelta,cam in enumerate(range(self.qtCamadas-2,-1,-1)):
             de = []
             for indP,perc in enumerate(self.camadas[cam]):
-                delta = self.__findDeltaEscondido(indDelta,indP,cam)
                 for w in range(len(perc.weights)-1):
-                    perc.weights[w] = perc.weights[w] + self.n*perc.entradas[w]*delta
-                perc.weights[-1] = perc.weights[-1] + self.n*self.bias*delta
-                de.append(delta)
-
+                    perc.weights[w] = perc.weights[w] + self.n*perc.entradas[w]*self.delta[indDelta-1][indP]
+                perc.weights[-1] = perc.weights[-1] + self.n*self.bias*self.delta[indDelta-1][indP]
+                #print(perc.weights)
+    def _findDeltasEscondidos(self):
+        for indDelta,cam in enumerate(range(self.qtCamadas-2,-1,-1)):
+            de = []
+            for indP,perc in enumerate(self.camadas[cam]):
+                de.append(self.__findDeltaEscondido(indDelta,indP,cam))
             self.delta.append(de)
-              
+               
     #modifica a funcao de ativacao de todos os perceptrons da rede
     def setFuncaoAtivacao(self,tipoFunc="Sigmoid",parametros=[1,1,1]):
         self.tipoFunc = tipoFunc
@@ -256,25 +262,51 @@ class MLP(object):
     def test(self,bTeste):
         erro = 0
         for i,atr in enumerate(bTeste.atributos):
-            print(atr)
             r = self.avaliar(atr)
             c = self.decimalParaBin(int(bTeste.classes[i]))
             if(r != c):
                 erro+=1
         erro = 100*(erro/len(bTeste.classesOri))
-        return erro    
-            
-        
-        
-
-
-    
-    
- 
-        
+        return erro
+      
+class MLPBatch(MLP):
     
 
-            
-            
-        
+    #Metodo responsavel pro treinar a rede    
+    def fit(self,baseTreino):
+        for epoca in range(self.qtIteracoes):
+            entrou = False
+            self.detalAcm = []
+            for index,atr in enumerate(baseTreino.atributos):
+                saida = self.avaliar(atr)
+                classe = self.decimalParaBin(baseTreino.classes[index])
+                for k,e in enumerate(saida):
+                    if(e!=classe[k]):
+                        self.delta = []
+                        self._findDeltasSaida(classe)
+                        self._findDeltasEscondidos()
+                        self._acumularDelta()
+                        entrou = True
+                        break
+            if(entrou==False):#Caso não ocorram mais erros então para o treinamento
+                print(epoca)
+                break
+            self.delta = self.detalAcm
+            self._atualizarPesos()
+
+    def _acumularDelta(self):
+        if(self.detalAcm==[]):
+            self.detalAcm = deepcopy(self.delta)
+        else:
+            for i,c in enumerate(self.delta):
+                for j,delta in enumerate(c):
+                    self.detalAcm[i][j] = delta + self.detalAcm[i][j]
     
+    def _atualizarPesos(self):
+        self._atualizarPesosSaida()
+        self._atualizarPesosOcultos()             
+                
+    
+
+
+

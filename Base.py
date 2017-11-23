@@ -55,7 +55,8 @@ class Base(object):
         self.atributos = self.atributosOri
         
         
-        
+    def copy(self):
+        return Base(self.classes,self.atributos)
     
 
         

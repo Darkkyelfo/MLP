@@ -3,7 +3,7 @@ Created on 25 de out de 2017
 
 @author: raul
 '''
-from neuralNetwork import MLP
+from neuralNetwork import MLP,MLPBatch
 from Base import Base
 from CreateBaseFromFile import CreateBaseFromFile as cbff
 from PCA import PCA as PCA
@@ -35,6 +35,7 @@ if __name__ == '__main__':
     
     #pca = PCA()
     bWineTreino = Base(tc,ta)
+    bWineTreinoNaoEmb = bWineTreino.copy()
     #pca.fit(bWineTreino)
     #bWineTreino = pca.run(bWineTreino, 13)
     bWineTreino.embaralharBase()
@@ -50,6 +51,7 @@ if __name__ == '__main__':
     ta = bIris1.atributos[0:int(qtIris1/2)]+bIris2.atributos[0:int(qtIris2/2)]+bIris3.atributos[0:int(qtIris3/2)]
     
     bIrisTreino = Base(tc,ta)
+    bIrisTreinoNaoE = bIrisTreino.copy()
     #print(bIrisTreino.classes)
     bIrisTreino.embaralharBase()
     #embaralha o conjuto de treino
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     ta = bIris1.atributos[int(qtIris1/2):]+bIris2.atributos[int(qtIris2/2):]+bIris3.atributos[int(qtIris3/2):]
     
     bIrisTeste = Base(tc,ta)
+         
     #print(bIrisTeste.classes)
      
     #mlpsk = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(3, 3), random_state=1)
@@ -72,21 +75,36 @@ if __name__ == '__main__':
     
     #Rede neural pra base wine
     epocas = 10000
-    taxa = 0.7
+    taxa = 0.001
     mlp = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlpBatch = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
     mlp.carregarDeArquivo("redes/mlpWine0")
-    mlp.fit(bWineTreino)
-    print("wine nao normalizada:%s"%mlp.test(bWineTeste))
+    mlpBatch.carregarDeArquivo("redes/mlpWine0")
+   # mlp.fit(bWineTreino)
+    #mlpBatch.fitBatch(bWineTreino)
+    #print("wine nao normalizada:%s"%mlp.test(bWineTeste))
+   # print("wine nao normalizada:%s"%mlpBatch.test(bWineTeste))
     bWineTreino.normalizar()
     bWineTeste.normalizar()
     mlp.carregarDeArquivo("redes/mlpWine0")
-    mlp.fit(bWineTreino)
-    print("wine normalizada:%s"%mlp.test(bWineTeste))
+   # mlpBatch.qtIteracoes = 100000
+   # mlpBatch.fitBatch(bWineTreino)
+    #mlp.fit(bWineTreino)
+    #mlp.fitBatch(bWineTreino)
+   # print("wine normalizada:%s"%mlp.test(bWineTeste))
+    #print("wine normalizada Batch:%s"%mlpBatch.test(bWineTeste))
     #Rede neural pra base Iris
     mlpIris = MLP([4,3],w1,taxa,epocas,tipoFunc="Sigmoid")
-    mlpIris.salveEmArquivo("redes/iris0")
     mlpIris.fit(bIrisTreino)
+    print("Iris Sigmoid:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisB = MLPBatch([4,3],w1,taxa,epocas,tipoFunc="Sigmoid")
+    mlpIris.salveEmArquivo("redes/iris0")
+    mlpIrisB.carregarDeArquivo("redes/iris0")
+    mlpIris.fit(bIrisTreino)
+    mlpIrisB.fit(bIrisTreino)
+    #mlpIrisB.fit(bIrisTreino)
     print("iris nao normalizada:%s"%mlpIris.test(bIrisTeste))
+    print("iris nao normalizada batch:%s"%mlpIrisB.test(bIrisTeste))
     bIrisTreino.normalizar()
     bIrisTeste.normalizar()
     mlpIris.carregarDeArquivo("redes/iris0")
@@ -98,13 +116,19 @@ if __name__ == '__main__':
     bIrisTeste.desnormalizar()
     
     mlpIris.carregarDeArquivo("redes/iris0")
-    mlpIris.fit(bIrisTreino)
-    print("Iris sigmoid:%s"%mlpIris.test(bIrisTeste))
-    
-    mlpIris.carregarDeArquivo("redes/iris0")
     mlpIris.setFuncaoAtivacao("lRELU")
     mlpIris.fit(bIrisTreino)
-    print("Iris Relu:%"%mlpIris.test(bIrisTeste))
+    print("Iris Relu:%s"%mlpIris.test(bIrisTeste))
     #mlpIris.salveEmArquivo("redes/iris2")
     
+    # Nao embaralhada
+    mlp.carregarDeArquivo("redes/mlpWine0")
+    bWineTreinoNaoEmb.normalizar()
+    mlp.fit(bWineTreinoNaoEmb)
+    print("Wine nao emb:%s"%mlp.test(bWineTeste))
+    mlpIris.carregarDeArquivo("redes/iris0")
+    mlpIris.fit(bIrisTreinoNaoE)
+    print("Iris nao em:%s"%mlpIris.test(bIrisTeste))
+
+
     pass
