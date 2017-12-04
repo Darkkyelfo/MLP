@@ -6,7 +6,6 @@ Created on 25 de out de 2017
 from neuralNetwork import MLP,MLPBatch
 from Base import Base
 from CreateBaseFromFile import CreateBaseFromFile as cbff
-from PCA import PCA as PCA
 import numpy as np
 if __name__ == '__main__':
     
@@ -33,11 +32,10 @@ if __name__ == '__main__':
     tc = bWine1.classesOri[0:int(qtBase/2)]+bWine2.classesOri[0:int(qtBase2/2)]+bWine3.classesOri[0:int(qtBase2/2)]
     ta = bWine1.atributos[0:int(qtBase/2)]+bWine2.atributos[0:int(qtBase2/2)]+bWine3.atributos[0:int(qtBase2/2)]
     
-    #pca = PCA()
+
     bWineTreino = Base(tc,ta)
     bWineTreinoNaoEmb = bWineTreino.copy()
-    #pca.fit(bWineTreino)
-    #bWineTreino = pca.run(bWineTreino, 13)
+
     bWineTreino.embaralharBase()
     
     tc = bWine1.classesOri[int(qtBase/2):]+bWine2.classesOri[int(qtBase2/2):]+bWine3.classesOri[int(qtBase3/2):]
@@ -52,83 +50,145 @@ if __name__ == '__main__':
     
     bIrisTreino = Base(tc,ta)
     bIrisTreinoNaoE = bIrisTreino.copy()
-    #print(bIrisTreino.classes)
+
     bIrisTreino.embaralharBase()
-    #embaralha o conjuto de treino
-    #c = list(zip(bIrisTreino.classes, bIrisTreino.atributos,bIrisTreino.classesOri))
-   # shuffle(c)
-    #bIrisTreino.classes,bIrisTreino.atributos,bIrisTreino.classesOri = zip(*c)
-    
-    #bIrisTreino = Base(tc,ta)
     
     tc = bIris1.classesOri[int(qtIris1/2):]+bIris2.classesOri[int(qtIris2/2):]+bIris3.classesOri[int(qtIris3/2):]
     ta = bIris1.atributos[int(qtIris1/2):]+bIris2.atributos[int(qtIris2/2):]+bIris3.atributos[int(qtIris3/2):]
     
     bIrisTeste = Base(tc,ta)
          
-    #print(bIrisTeste.classes)
-     
-    #mlpsk = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(3, 3), random_state=1)
-    #mlpsk.fit(bWineTreino.atributos,bWineTreino.classesOri)
     w = [len(bWine.atributos[0])+1,5]
     w1 = [len(bIris.atributos[0])+1,5]
     
     #Rede neural pra base wine
     epocas = 10000
     taxa = 0.001
-    mlp = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
-    mlpBatch = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
-    mlp.carregarDeArquivo("redes/mlpWine0")
-    mlpBatch.carregarDeArquivo("redes/mlpWine0")
-   # mlp.fit(bWineTreino)
-    #mlpBatch.fitBatch(bWineTreino)
-    #print("wine nao normalizada:%s"%mlp.test(bWineTeste))
-   # print("wine nao normalizada:%s"%mlpBatch.test(bWineTeste))
-    bWineTreino.normalizar()
-    bWineTeste.normalizar()
-    mlp.carregarDeArquivo("redes/mlpWine0")
-   # mlpBatch.qtIteracoes = 100000
-   # mlpBatch.fitBatch(bWineTreino)
-    #mlp.fit(bWineTreino)
-    #mlp.fitBatch(bWineTreino)
-   # print("wine normalizada:%s"%mlp.test(bWineTeste))
-    #print("wine normalizada Batch:%s"%mlpBatch.test(bWineTeste))
-    #Rede neural pra base Iris
+    
+    #Iris
     mlpIris = MLP([4,3],w1,taxa,epocas,tipoFunc="Sigmoid")
+    mlpIris.salveEmArquivo("redes/iris1")
+    mlpIrisBatch = MLPBatch([4,3],w1,taxa,epocas,tipoFunc="Sigmoid")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
+    #mlpIris.fit(bIrisTreino)
+    #print("sigmoid - estocastica - embaralhada - Não normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreino)
+    print("sigmoid - batch - embaralhada - Não normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
+    mlpIris.fit(bIrisTreinoNaoE)
+    print("sigmoid - estocastica - nao embaralhada - Não normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreinoNaoE)
+    print("sigmoid - batch - nao embaralhada - nao normalizado:%s" %mlpIrisBatch.test(bIrisTeste))
+    
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
+    mlpIris.setFuncaoAtivacao("lRELU")
+    mlpIrisBatch.setFuncaoAtivacao("lRELU")
+    
     mlpIris.fit(bIrisTreino)
-    print("Iris Sigmoid:%s"%mlpIris.test(bIrisTeste))
-    mlpIrisB = MLPBatch([4,3],w1,taxa,epocas,tipoFunc="Sigmoid")
-    mlpIris.salveEmArquivo("redes/iris0")
-    mlpIrisB.carregarDeArquivo("redes/iris0")
-    mlpIris.fit(bIrisTreino)
-    mlpIrisB.fit(bIrisTreino)
-    #mlpIrisB.fit(bIrisTreino)
-    print("iris nao normalizada:%s"%mlpIris.test(bIrisTeste))
-    print("iris nao normalizada batch:%s"%mlpIrisB.test(bIrisTeste))
+    print("lRelu - estocastica - embaralhada - Não normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreino)
+    print("lRelu - batch - embaralhada - Não normalizado:%s"%mlpIrisBatch.test(bIrisTeste))
+    
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
+    mlpIris.setFuncaoAtivacao("lRELU")
+    mlpIrisBatch.setFuncaoAtivacao("lRELU")
+    
+    mlpIris.fit(bIrisTreinoNaoE)
+    print("lRelu - estocastica - nao embaralhada - Não normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreinoNaoE)
+    print("lRelu - batch - nao embaralhada - Não normalizado:%s"%mlpIrisBatch.test(bIrisTeste))
+
     bIrisTreino.normalizar()
     bIrisTeste.normalizar()
-    mlpIris.carregarDeArquivo("redes/iris0")
+    bIrisTreinoNaoE.normalizar()
+    
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
     mlpIris.fit(bIrisTreino)
-    print("iris normalizada:%s"%mlpIris.test(bIrisTeste))
+    print("sigmoid - estocastica - embaralhada - normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreino)
+    print("sigmoid - batch - embaralhada - normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
     
-    # RELU VS SIGMOID
-    bIrisTreino.desnormalizar()
-    bIrisTeste.desnormalizar()
-    
-    mlpIris.carregarDeArquivo("redes/iris0")
-    mlpIris.setFuncaoAtivacao("lRELU")
-    mlpIris.fit(bIrisTreino)
-    print("Iris Relu:%s"%mlpIris.test(bIrisTeste))
-    #mlpIris.salveEmArquivo("redes/iris2")
-    
-    # Nao embaralhada
-    mlp.carregarDeArquivo("redes/mlpWine0")
-    bWineTreinoNaoEmb.normalizar()
-    mlp.fit(bWineTreinoNaoEmb)
-    print("Wine nao emb:%s"%mlp.test(bWineTeste))
-    mlpIris.carregarDeArquivo("redes/iris0")
     mlpIris.fit(bIrisTreinoNaoE)
-    print("Iris nao em:%s"%mlpIris.test(bIrisTeste))
+    print("sigmoid - estocastica - nao embaralhada - normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreinoNaoE)
+    print("sigmoid - batch - nao embaralhada - normalizado:%s" %mlpIrisBatch.test(bIrisTeste))
+    
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
+    mlpIris.setFuncaoAtivacao("lRELU")
+    mlpIrisBatch.setFuncaoAtivacao("lRELU")
+    
+    mlpIris.fit(bIrisTreino)
+    print("lRelu - estocastica - embaralhada - normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreino)
+    print("lRelu - batch - embaralhada - normalizado:%s"%mlpIrisBatch.test(bIrisTeste))
+    
+    mlpIris.carregarDeArquivo("redes/iris1")
+    mlpIrisBatch.carregarDeArquivo("redes/iris1")
+    
+    mlpIris.setFuncaoAtivacao("lRELU")
+    mlpIrisBatch.setFuncaoAtivacao("lRELU")
+    
+    mlpIris.fit(bIrisTreinoNaoE)
+    print("lRelu - estocastica - nao embaralhada - normalizado:%s"%mlpIris.test(bIrisTeste))
+    mlpIrisBatch.fit(bIrisTreinoNaoE)
+    print("lRelu - batch - nao embaralhada - normalizado:%s"%mlpIrisBatch.test(bIrisTeste))
 
-
+    #Wine
+    mlpWine = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlpWine.salveEmArquivo("redes/wine")
+    mlpWineBatch = MLPBatch([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlpWineBatch.carregarDeArquivo("redes/wine")
+    mlpWineNaoEm = MLP([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlpWineNaoEm.carregarDeArquivo("redes/wine")
+    mlpWineNaoEmBatch = MLPBatch([4,3],w,taxa,epocas,tipoFunc="Sigmoid")
+    mlpWineNaoEmBatch.carregarDeArquivo("redes/wine")
+    mlpWine.fit(bWineTreino)
+    print("sigmoid - estocastica - embaralhada - Não normalizado:%s"%mlpWine.test(bWineTeste))
+   
+    mlpWine.carregarDeArquivo("redes/wine")
+    bWineTreino.normalizar()
+    bWineTeste.normalizar()
+    mlpWine.fit(bWineTreino)
+    print("sigmoid - estocastica - embaralhada - normalizado:%s"%mlpWine.test(bWineTeste))
+    mlpWineBatch.fit(bWineTreino)
+    print("sigmoid - batch - embaralhada - normalizado:%s"%mlpWineBatch.test(bWineTeste))
+   
+    mlpWine.carregarDeArquivo("redes/wine")
+    bWineTreinoNaoEmb.normalizar()
+    mlpWine.fit(bWineTreinoNaoEmb)
+    mlpWineBatch.carregarDeArquivo("redes/wine")
+    print("sigmoid - estocastica - não embaralhada - normalizado:%s"%mlpWine.test(bWineTeste))
+    mlpWineBatch.fit(bWineTreinoNaoEmb)
+    print("sigmoid - batch - não embaralhada - normalizado:%s"%mlpWineBatch.test(bWineTeste))
+   
+    mlpWine.carregarDeArquivo("redes/wine")
+    mlpWine.setFuncaoAtivacao("lRELU")
+    mlpWine.fit(bWineTreino)
+    mlpWineBatch.carregarDeArquivo("redes/wine")
+    mlpWineBatch.setFuncaoAtivacao("lRELU")
+    print("lRelu - estocastica - embaralhada - normalizado:%s"%mlpWine.test(bWineTeste))
+    mlpWineBatch.fit(bWineTreino)
+    print("lRelu  - batch - embaralhada - normalizado:%s"%mlpWineBatch.test(bWineTeste))
+   
+    mlpWine.carregarDeArquivo("redes/wine")
+    mlpWine.setFuncaoAtivacao("lRELU")
+    mlpWine.fit(bWineTreinoNaoEmb)
+    mlpWineBatch.carregarDeArquivo("redes/wine")
+    mlpWineBatch.setFuncaoAtivacao("lRELU")
+    print("lRelu - estocastica - não embaralhada - normalizado:%s"%mlpWine.test(bWineTeste))
+    mlpWineBatch.fit(bWineTreinoNaoEmb)
+    print("Relu  - batch - não embaralhada - normalizado:%s"%mlpWineBatch.test(bWineTeste))
     pass

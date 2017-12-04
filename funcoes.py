@@ -7,6 +7,7 @@ from abc import ABC,abstractmethod
 from bigfloat import BigFloat
 import math as m
 import mpmath as mp
+import numpy as np 
 
 
 class Funcao(ABC):
@@ -15,11 +16,11 @@ class Funcao(ABC):
     '''
         
     @abstractmethod
-    def fx(self):
+    def fx(self,x):
         pass
     
     @abstractmethod
-    def dFx(self):
+    def dFx(self,x):
         pass
     
 class Linear(Funcao):
@@ -50,8 +51,6 @@ class Sigmoid(Funcao):
                 return 0
             return 1
             
-
-    
 class TanH(Funcao):
     "Classe que representa a funcao de ativacao hiperbolica"
     def fx(self,x):
@@ -70,5 +69,17 @@ class LReLU(Funcao):
             return 0.01
         else:
             return 1
+
+class Gaussiana(Funcao):
     
+    def fx(self,x,c,r):
+        distancia = np.linalg.norm(np.array(c)-np.array(x))
+        d = m.pow(distancia,2)
+        return m.exp(-(d)/m.pow(r,2))
+        
+
+    def dFx(self,x): #procurar derivada depois
+        return 1
+
+
         

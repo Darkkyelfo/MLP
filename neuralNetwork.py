@@ -5,7 +5,11 @@ Created on 4 de nov de 2017
 from numba import jit
 from copy import deepcopy
 from random import random, seed,randint
+from sys import float_info
 import funcoes
+import math
+import numpy as np
+
 class Perceptron(object):
     '''
     classe que representa um perceptron 
@@ -30,6 +34,8 @@ class Perceptron(object):
             self.funcAtivacao = funcoes.TanH()
         elif(funcao=="lRELU"):
             self.funcAtivacao = funcoes.LReLU()
+        elif(funcao=="Gaussian"):
+            self.funcAtivacao = funcao.Gaussiana()
         else:
             self.funcAtivacao = funcoes.Sigmoid()
     
@@ -68,12 +74,9 @@ class Perceptron(object):
 
             
     def avaliar(self,atributos):
-        #print(atributos)
         self.entradas = [] #guarda a entrada dos dados
         for i in atributos:
             self.entradas.append(i)
-        #print("pesos",self.weights)
-        #print("step",self.step(self.__somatorio(atributos)))
         self.saida = self.step(self.__somatorio(atributos)) #guarda a saida encontrada
         
         return self.saida
@@ -99,6 +102,7 @@ class MLP(object):
             self.camadas.append([])
             for j in range(e):
                 w = [ random() for k in range(pesos[i]) ]#gera os pesos aleatorios
+                #w = np.array(w,dtype = np.float64)
                 #print(w)
                 p = Perceptron(w,self.n,1,self.bias,tipoFunc,parametros)
                 self.camadas[i].append(p)
@@ -271,7 +275,7 @@ class MLP(object):
       
 class MLPBatch(MLP):
     
-
+    #@jit
     #Metodo responsavel pro treinar a rede    
     def fit(self,baseTreino):
         for epoca in range(self.qtIteracoes):
@@ -305,8 +309,163 @@ class MLPBatch(MLP):
     def _atualizarPesos(self):
         self._atualizarPesosSaida()
         self._atualizarPesosOcultos()             
-                
+
+class NeuronioRBFsaida(object):
     
+    def __init__(self,funcao = "defautl"):
+        self._neuEntrada = []
+        self._pesos = []
+        self.setFunction(funcao)
+        
+    def addEntrada(self,neuronioInt):
+        self._neuEntrada.append(neuronioInt)
+        self._pesos.append(1)
+    
+    def atualizarPeso(self,ind,valor = 1):
+        self._pesos[ind]+=valor
+        
+    def setFunction(self,funcao="defautl"):
+        if(funcao == "default"):
+            self._funcao = "default"
+        else:
+            self._funcao = "default"
+        
+    def avaliar(self):
+        
+        if(self._funcao=="default"):
+            somatorio = 0
+            for i,neu in enumerate(self._neuEntrada):
+                somatorio+=neu.saida*self._pesos[i]
+            sPesos = self._somatorioPesos()
+            
+            return somatorio/sPesos
+        
+    def _somatorioPesos(self):
+        som = 0
+        for i in self._pesos:
+            som+=i
+        return som
+        
+         
+class NeuronioRBFinter(object):
+    
+    def __init__(self,centro,raio = math.sqrt(float_info.max-1)):
+        self._actvFunction = funcoes.Gaussiana()
+        self._c = centro
+        self._r = raio
+    
+    def setCentro(self,c):
+        self._c = c
+        
+    def setRaio(self,r):
+        self._r = r
+    
+    def getCentro(self):
+        return self._c
+    
+    def getRaio(self):
+        return self._r
+    
+    def avaliar(self,x):
+        self.saida = self._actvFunction.fx(x,self._c,self._r)
+        return self.saida
 
+class RBF(object):
+    
+    def __init__(self,neuSaida):
+        self.neuSaida = neuSaida
+        self.camSaida = []
+        self.camIntermediaria = []
+        for i in range(neuSaida):
+            self.camSaida.append(NeuronioRBFsaida())
+            self.camIntermediaria.append([])
 
+    def fitDDA(self,bTreino,tetaP = 0.4,tetaN = 0.1 ,valor = 1):
+        self._tetaP = tetaP
+        self._tetaN = tetaN
+        for i,elemento in enumerate(bTreino.atributos):
+            deveCriar = True
+            for j,neu in enumerate(self.camIntermediaria[bTreino.classes[i]]):
+                if(neu.avaliar(elemento)>=self._tetaP):
+                    self.camSaida[bTreino.classes[i]].atualizarPeso(j,valor)
+                    deveCriar = False
+                    break
+            if(deveCriar):
+                neu = self._gerarNovoNeuronio(elemento, bTreino.classes[i])
+                self.camSaida[bTreino.classes[i]].addEntrada(neu)
+                distancia = self._calcDistancia(neu.getCentro(),bTreino.classes[i])
+                if(distancia>0):
+                    nRaio = self._calcNovoRaio(distancia)
+                    neu.setRaio(nRaio)
+                    self._ajustarRaios(elemento, bTreino.classes[i])      
+                
+    def avaliar(self,elemento):
+        
+        resultados = []
+        for cam in self.camIntermediaria:
+            for neu in cam:
+                neu.avaliar(elemento)
+        for neu in self.camSaida:
+            resultados.append(neu.avaliar())
+            
+        return self.definirSaida(resultados)
+    
+    
+    def _gerarNovoNeuronio(self,atr,classeCamada):
+        nCentro = atr
+        neu = NeuronioRBFinter(nCentro)
+        self.camIntermediaria[classeCamada].append(neu)
+        return neu
+        
+    def _ajustarRaios(self,atr,classeIgnorada):
+        for i,cam in enumerate(self.camIntermediaria):
+            if(i!=classeIgnorada):
+                for neu in cam:
+                    d = np.linalg.norm(np.array(atr)-np.array(neu.getCentro()))
+                    r = self._calcNovoRaio(d)
+                    neu.setRaio(r)
+                    
+                                    
+    def _calcDistancia(self,centr1,classe):
+        try:
+            distancias = []
+            for i,cam in enumerate(self.camIntermediaria):
+                if(i != classe):
+                    for neu in cam:
+                        d = np.linalg.norm(np.array(centr1)-np.array(neu.getCentro()))
+                        distancias.append(d)
+            distancias.sort()
+            return distancias[0]
+        except:
+            return 0
+    
+    def _calcNovoRaio(self,dist):
+        return math.sqrt((-1*dist)/math.log(self._tetaN,math.e))
+
+    def definirSaida(self,saida):
+        maior = saida.index(max(saida))
+        s = []
+        for i,e in enumerate(saida):
+            if(i==maior):
+                s.append(1)
+            else:
+                s.append(0)
+        return s
+    
+    #retorna um vetor binario do tamanho da quantidade de perceptrons na camada de saida
+    #exemplo se houver 3 o vetores sera: entrada(1) -> [0,1,0], entrada(0) -> [1,0,0]
+    def decimalParaBin(self,num):
+        s = [0]*(len(self.camSaida))
+        s[num] = 1
+        return s
+    
+    def testar(self,bTeste):
+        erro = 0
+        for i,atr in enumerate(bTeste.atributos):
+            if(self.avaliar(atr) != self.decimalParaBin(bTeste.classes[i])):
+                erro+=1
+        return erro/len(bTeste.classes)
+                
+            
+            
 
